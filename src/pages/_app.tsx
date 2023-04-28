@@ -1,11 +1,17 @@
 import Layout from '@/components/Layout'
 import '@/styles/globals.css'
 
-import { ClerkProvider } from '@clerk/nextjs'
+import { ClerkProvider, SignedIn, SignedOut, RedirectToSignIn } from '@clerk/nextjs'
 import type { AppProps } from 'next/app'
+import { useRouter } from 'next/router'
 import Head from 'next/head'
 
-export default function App({ Component, pageProps }: AppProps) {
+const publicPages = ['/sign-in/[[...index]]', '/sign-up/[[...index]]']
+
+const App = ({ Component, pageProps }: AppProps) => {
+    const { pathname } = useRouter()
+    const isPublicPage = publicPages.includes(pathname)
+
     return (
         <>
             <Head>
@@ -21,10 +27,25 @@ export default function App({ Component, pageProps }: AppProps) {
             </Head>
 
             <ClerkProvider {...pageProps}>
-                <Layout>
-                    <Component {...pageProps} />
-                </Layout>
+                {isPublicPage ? (
+                    <Layout>
+                        <Component {...pageProps} />
+                    </Layout>
+                ) : (
+                    <>
+                        <SignedIn>
+                            <Layout>
+                                <Component {...pageProps} />
+                            </Layout>
+                        </SignedIn>
+                        <SignedOut>
+                            <RedirectToSignIn />
+                        </SignedOut>
+                    </>
+                )}
             </ClerkProvider>
         </>
     )
 }
+
+export default App
