@@ -1,60 +1,47 @@
-import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs'
-import { Inter } from 'next/font/google'
-import Logo from '@/components/Logo'
+import { SignedIn, SignedOut } from '@clerk/nextjs'
 import Link from 'next/link'
 import Landing from '@/components/Landing'
 
-const inter = Inter({ subsets: ['latin'] })
-
 export default function Home() {
     return (
-        <main className={`min-h-screen bg-light ${inter.className}`}>
-            <nav className="fixed flex items-center justify-between w-full h-16 px-12 bg-white bg-opacity-80 backdrop-blur-[3px] shadow-soft">
-                <Logo />
+        <>
+            <SignedOut>
+                <Landing />
+            </SignedOut>
 
-                <SignedIn>
-                    <UserButton
-                        appearance={{
-                            userProfile: {
-                                elements: {
-                                    badge: 'text-black hover:no-underline transition hover:text-black opacity-70 hover:opacity-100 bg-black bg-opacity-10',
-                                    profileSectionPrimaryButton:
-                                        'text-black hover:no-underline transition hover:text-black opacity-70 hover:opacity-100 hover:bg-black hover:bg-opacity-10',
-                                    formButtonReset:
-                                        'text-black hover:no-underline transition hover:text-black opacity-70 hover:opacity-100 hover:bg-black hover:bg-opacity-10',
-                                    formButtonPrimary:
-                                        'text-black hover:no-underline transition hover:text-black opacity-70 hover:opacity-100 bg-black bg-opacity-10 hover:bg-black hover:text-white',
-                                    formFieldInput: 'accent-black',
-                                },
-                            },
-                        }}
-                    />
-                </SignedIn>
+            <SignedIn>
+                <Link
+                    href="/articles/generate"
+                    className="flex items-center justify-center px-3 py-1 ml-auto text-sm transition-all rounded-md active:scale-95 hover:bg-white w-44 opacity-80 hover:opacity-100 shadow-soft">
+                    <svg
+                        className="mr-2"
+                        width="24"
+                        height="24"
+                        fill="none"
+                        viewBox="0 0 24 24">
+                        <path
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="1.5"
+                            d="M4.75 19.25L9 18.25L18.2929 8.95711C18.6834 8.56658 18.6834 7.93342 18.2929 7.54289L16.4571 5.70711C16.0666 5.31658 15.4334 5.31658 15.0429 5.70711L5.75 15L4.75 19.25Z"></path>
+                        <path
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="1.5"
+                            d="M19.25 19.25H13.75"></path>
+                    </svg>
+                    New Article
+                </Link>
 
-                <SignedOut>
-                    <div className="flex items-center space-x-2">
-                        <Link
-                            className="px-3 py-1 text-sm transition rounded-md hover:bg-neutral-100 opacity-80 hover:opacity-100"
-                            href="/sign-in">
-                            Sign In
-                        </Link>
-
-                        <Link
-                            className="px-3 py-1 text-sm transition rounded-md bg-light opacity-80 hover:opacity-100 shadow-soft"
-                            href="/sign-in">
-                            Create account
-                        </Link>
-                    </div>
-                </SignedOut>
-            </nav>
-
-            <div className="px-12 pt-24 pb-6">
-                <SignedOut>
-                    <Landing />
-                </SignedOut>
-
-                <SignedIn>You are signed in!</SignedIn>
-            </div>
-        </main>
+                <section
+                    id="articles"
+                    className="p-6 mt-4 bg-white rounded-lg shadow-soft">
+                    <h2 className="mb-4 text-xl font-medium">Your Articles</h2>
+                    <p className="text-sm text-black text-opacity-50">No Articles found.</p>
+                </section>
+            </SignedIn>
+        </>
     )
 }
