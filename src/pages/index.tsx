@@ -2,13 +2,14 @@ import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs'
 import { Inter } from 'next/font/google'
 import Logo from '@/components/Logo'
 import Link from 'next/link'
+import Landing from '@/components/Landing'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export default function Home() {
     return (
-        <main className={`flex min-h-screen flex-col items-center justify-between bg-light ${inter.className}`}>
-            <nav className="flex items-center justify-between w-full h-16 px-12 bg-white shadow-soft">
+        <main className={`min-h-screen bg-light ${inter.className}`}>
+            <nav className="fixed flex items-center justify-between w-full h-16 px-12 bg-white bg-opacity-80 backdrop-blur-[3px] shadow-soft">
                 <Logo />
 
                 <SignedIn>
@@ -46,6 +47,14 @@ export default function Home() {
                     </div>
                 </SignedOut>
             </nav>
+
+            <div className="px-12 pt-24 pb-6">
+                <SignedOut>
+                    <Landing />
+                </SignedOut>
+
+                <SignedIn>You are signed in!</SignedIn>
+            </div>
         </main>
     )
 }
