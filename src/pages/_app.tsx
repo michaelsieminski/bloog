@@ -6,7 +6,7 @@ import type { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 
-const publicPages = ['/sign-in/[[...index]]', '/sign-up/[[...index]]']
+const publicPages = ['/', '/sign-in/[[...index]]', '/sign-up/[[...index]]']
 
 const App = ({ Component, pageProps }: AppProps) => {
     const { pathname } = useRouter()
