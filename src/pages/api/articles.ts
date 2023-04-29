@@ -15,18 +15,18 @@ let running: boolean = false
 
 const publishPartialResponse = async () => {
     setTimeout(() => {
-        let finalPartialResponse: string = ''
-
-        if (responseParts[0]) finalPartialResponse += responseParts[0]
-        if (responseParts[1]) finalPartialResponse += responseParts[1]
-        finalPartialResponse += partialResponse
-
-        channel.publish('partialResponse', finalPartialResponse)
-
         if (running) {
+            let finalPartialResponse: string = ''
+
+            if (responseParts[0] && responseParts[0] !== partialResponse) finalPartialResponse += responseParts[0]
+            if (responseParts[1] && responseParts[1] !== partialResponse) finalPartialResponse += responseParts[1]
+            finalPartialResponse += partialResponse
+
+            channel.publish('partialResponse', finalPartialResponse)
+
             publishPartialResponse()
         }
-    }, 500)
+    }, 200)
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -47,7 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         })
 
         // Establish Ably Connection for partial responses
-        const realtime = await new Ably.Realtime.Promise({
+        const realtime = new Ably.Realtime.Promise({
             key: process.env.ABLY_ROOT_KEY,
         })
         channel = realtime.channels.get(userId)
@@ -89,7 +89,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         console.log('Finished second part of blog post (' + response.text.split(' ').length + ' Words)')
 
         response = await api.sendMessage(
-            'please continue with the blog post with another 500 words Its very important that it continues with 500 words',
+            'please continue with the blog post with another 500 words Its very important that it continues with 500 words and this is the ending of the blog post.',
             {
                 parentMessageId: response.id,
                 onProgress: (data) => {
@@ -101,10 +101,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         console.log('Finished last part of the blog post (' + response.text.split(' ').length + ' Words)')
 
         running = false
+        responseParts = []
+        partialResponse = ''
 
-        const finalResponse = responseParts[0] + responseParts[1] + response.text
-        await channel.publish('partialResponse', finalResponse)
-        //realtime.close()
+        setTimeout(() => {
+            realtime.close()
+        }, 1000)
 
         return res.status(201).json({ response: response.text })
     } else {
