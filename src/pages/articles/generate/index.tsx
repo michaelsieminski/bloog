@@ -1,18 +1,45 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useUser } from '@clerk/nextjs'
 import Link from 'next/link'
+import * as Ably from 'ably'
 
 const ArticlesGeneratePage = () => {
     const [title, setTitle] = useState<string>('')
     const [description, setDescription] = useState<string>('')
+    const [content, setContent] = useState<string>('')
+    const { isLoaded, isSignedIn, user } = useUser()
+
+    useEffect(() => {
+        const realtime = new Ably.Realtime({
+            key: process.env.NEXT_PUBLIC_ABLY_SUBSCRIBE_KEY,
+        })
+
+        realtime.connection.on('connected', () => {
+            if (isLoaded && isSignedIn) {
+                const channel = realtime.channels.get(user.id)
+                channel.subscribe((message) => {
+                    console.log('okay')
+                    setContent(message.data)
+                })
+            }
+        })
+
+        return () => {
+            realtime.close()
+        }
+    }, [isLoaded, isSignedIn, user])
 
     const createArticle = () => {
-        fetch('/api/articles', {
-            method: 'POST',
-            body: JSON.stringify({
-                title: title,
-                description: description,
-            }),
-        })
+        if (isLoaded && isSignedIn) {
+            fetch('/api/articles', {
+                method: 'POST',
+                body: JSON.stringify({
+                    title: title,
+                    description: description,
+                    userId: user.id,
+                }),
+            })
+        }
     }
 
     return (
@@ -76,23 +103,26 @@ const ArticlesGeneratePage = () => {
                                 <path
                                     d="M5.04509 16.705L16.707 5.04302C17.0976 4.65249 17.7307 4.65249 18.1213 5.04301L18.957 5.8788C19.3476 6.26933 19.3476 6.90249 18.957 7.29302L7.29509 18.955C6.90457 19.3455 6.2714 19.3455 5.88088 18.955L5.04509 18.1192C4.65457 17.7287 4.65457 17.0955 5.04509 16.705Z"
                                     stroke="currentColor"
-                                    stroke-width="1.5"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"></path>
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"></path>
                                 <path
                                     d="M15 7L17 9"
                                     stroke="currentColor"
-                                    stroke-width="1.5"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"></path>
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"></path>
                             </svg>
                             Create Article
                         </button>
                     </div>
                 </div>
 
-                <div className="w-full h-full p-6 font-mono text-sm bg-white rounded-md shadow-soft">
-                    <p>result will be here</p>
+                <div className="w-full h-full p-6 overflow-y-scroll font-mono text-sm bg-white rounded-md shadow-soft">
+                    <p>Blog post length: {content?.split(' ').length - 1}</p>
+                    <div className="h-full overflow-y-scroll">
+                        <p>{content}</p>
+                    </div>
                 </div>
             </div>
         </>
