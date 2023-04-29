@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ChatGPTAPI } from 'chatgpt'
 import * as Ably from 'ably'
+import { PrismaClient } from '@prisma/client'
 
 interface PostData {
     title: string
@@ -12,6 +13,8 @@ let channel: Ably.Types.RealtimeChannelPromise
 let partialResponse: string
 let responseParts: string[] = []
 let running: boolean = false
+
+const prisma = new PrismaClient()
 
 const publishPartialResponse = async () => {
     setTimeout(() => {
@@ -31,6 +34,24 @@ const publishPartialResponse = async () => {
     }, 200)
 }
 
+const addArticleAmount = async (userId: string) => {
+    await prisma.user.upsert({
+        where: {
+            userId: userId,
+        },
+        update: {
+            articlesTotalAmount: {
+                increment: 1,
+            },
+        },
+        create: {
+            userId: userId,
+            articlesTotalAmount: 1,
+            subscribed: false,
+        },
+    })
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === 'POST') {
         const { title, description, userId }: PostData = JSON.parse(req.body)
@@ -40,11 +61,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(400).json({ message: 'Invalid request data' })
         }
 
+        // Check if user has subscribed
+        const user = await prisma.user.findUnique({
+            where: {
+                userId: userId,
+            },
+        })
+
+        if (!user || (user && user?.articlesTotalAmount > 10 && !user?.subscribed)) {
+            return false
+        }
+
+        addArticleAmount(userId)
+            .then(async () => {
+                prisma.$disconnect
+            })
+            .catch(async (e) => {
+                prisma.$disconnect
+            })
+
         const api = new ChatGPTAPI({
             apiKey: process.env.OPENAI_SECRET_KEY || '',
             completionParams: {
-                temperature: 0.7,
-                max_tokens: 1600,
+                temperature: 0.8,
+                max_tokens: 1400,
             },
         })
 

@@ -21,7 +21,7 @@ const Tiptap = forwardRef<TiptapMethods, TiptapProps>((props, ref) => {
     }) as Editor
 
     const addContent = (content: string) => {
-        if (editor) {
+        if (editor && content != undefined && content != 'undefined') {
             editor.chain().focus().setContent(content, true).run()
             editor.commands.scrollIntoView()
         }
