@@ -8,11 +8,11 @@ const ArticlesGeneratePage = () => {
     const [title, setTitle] = useState<string>('')
     const [description, setDescription] = useState<string>('')
     const [content, setContent] = useState<string>('')
-    const [image, setImage] = useState<string>('')
+    const [image, setImage] = useState<any>('')
+    const [loading, setLoading] = useState<boolean>(false)
 
     const { isLoaded, isSignedIn, user } = useUser()
 
-    const contentWrapper = useRef<HTMLDivElement>(null)
     const tiptap = useRef<TiptapMethods>(null)
     const titleField = useRef<HTMLInputElement>(null)
     const descriptionField = useRef<HTMLTextAreaElement>(null)
@@ -29,16 +29,10 @@ const ArticlesGeneratePage = () => {
                     switch (message.name) {
                         case 'partialResponse':
                             setContent(message.data)
-
-                            setTimeout(() => {
-                                if (contentWrapper.current) {
-                                    contentWrapper.current.scrollTop = contentWrapper.current.scrollHeight
-                                }
-                            }, 100)
                             break
                         case 'image':
                             console.log(message.data)
-                            setImage(message.data)
+                            setImage(JSON.parse(message.data))
                             break
                     }
                 })
@@ -56,9 +50,10 @@ const ArticlesGeneratePage = () => {
         }
     }, [content])
 
-    const createArticle = () => {
+    const createArticle = async () => {
         if (isLoaded && isSignedIn) {
-            fetch('/api/articles', {
+            setLoading(true)
+            await fetch('/api/articles', {
                 method: 'POST',
                 body: JSON.stringify({
                     title: title,
@@ -66,6 +61,7 @@ const ArticlesGeneratePage = () => {
                     userId: user.id,
                 }),
             })
+            setLoading(false)
         }
     }
 
@@ -180,17 +176,44 @@ const ArticlesGeneratePage = () => {
                 </div>
 
                 <div className="w-full h-full p-6 font-mono text-sm bg-white rounded-md shadow-soft">
-                    <div
-                        className="h-[98%] overflow-y-scroll"
-                        ref={contentWrapper}>
+                    <div className="h-[98%] overflow-y-scroll">
                         {image ? (
-                            <Image
-                                src={image}
-                                alt="test"
-                                width={500}
-                                height={200}
-                                className="object-cover w-full mb-6 rounded-md h-36"
-                            />
+                            <>
+                                <div className="w-[500px] h-[150px] overflow-hidden rounded-md mx-auto">
+                                    <a
+                                        href={image.redirect}
+                                        target="_blank"
+                                        rel="noreferrer noopener">
+                                        <Image
+                                            src={image.url}
+                                            alt={image.alt}
+                                            width={500}
+                                            height={200}
+                                            className="object-cover w-full h-full mb-6 transition duration-500 rounded-md cursor-pointer hover:scale-110"
+                                            priority
+                                        />
+                                    </a>
+                                </div>
+
+                                <p className="mt-2 mb-4 text-xs text-center opacity-70">
+                                    Photo by{' '}
+                                    <a
+                                        className="transition opacity-60 hover:opacity-100"
+                                        href={image.author_url}
+                                        target="_blank"
+                                        rel="noreferrer noopener">
+                                        {image.author_name}
+                                    </a>{' '}
+                                    on{' '}
+                                    <a
+                                        className="transition opacity-60 hover:opacity-100"
+                                        href="https://unsplash.com"
+                                        target="_blank"
+                                        rel="noreferrer noopener">
+                                        Unsplash
+                                    </a>
+                                </p>
+                            </>
                         ) : (
                             ''
                         )}

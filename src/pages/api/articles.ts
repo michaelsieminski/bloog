@@ -43,8 +43,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const api = new ChatGPTAPI({
             apiKey: process.env.OPENAI_SECRET_KEY || '',
             completionParams: {
-                temperature: 0.6,
-                max_tokens: 1800,
+                temperature: 0.7,
+                max_tokens: 1600,
             },
         })
 
@@ -59,17 +59,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // Generate Image Search Query for Thumbnail
         const imageQuery = await api.sendMessage(
-            'Generate a super short and simple search query with not more than 3 words for Unsplash to find a good looking Image that fits the following Blog Post Idea: Title: ' +
-                title +
-                ', Description: ' +
-                description,
+            'Generate a super short and simple summarized search query with one word for Unsplash to find a good looking Image that fits the following Blog Post Idea: Title: ' +
+                title,
             {
                 systemMessage:
                     'You are bloog, a super intelligent AI Tool that is capable of generating professional, seo optimized blog posts with a given Title and Description. Your job is to genereate Unsplash image search prompts to find a good fitting image for the blog post',
             }
         )
 
-        console.log('IMAGE QUERY PROMPT -> ' + imageQuery.text.replaceAll('"', '').replaceAll("'", ''))
+        console.log(imageQuery.text)
 
         const apiBasePath = '/api/image?query="' + imageQuery.text.replaceAll('"', '').replaceAll("'", '') + '"'
         let image: any
@@ -80,18 +78,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             .then((jsonData) => {
                 image = jsonData
             })
-        channel.publish('image', image?.image.urls.full)
+        channel.publish(
+            'image',
+            JSON.stringify({
+                url: image?.image.urls.regular,
+                alt: image?.image.description,
+                author_name: image?.image.user.name,
+                author_url: image?.image.user.links.html,
+                redirect: image?.image.links.html,
+            })
+        )
 
         // Generate Blog Post
         let response = await api.sendMessage(
-            "Generate a minimum 1500 words long blog post. Format it properly using HTML Tags and Subtitles. Dont include Dates. The title should be a h1 tag. Dont include a Conclusion yet. Dont include Written by Bloog. Dont include Written by ChatGPT. Here is the data that should be used for the blog post: Title: '" +
+            "Generate a minimum 1500 words long blog post. Format it properly using HTML Tags and Subtitles. The title should be a h1 tag. Dont include Written by Bloog. Dont include Written by ChatGPT. Here is the data that should be used for the blog post: Title: '" +
                 title +
                 "'. Description: '" +
                 description +
                 "'.",
             {
                 systemMessage:
-                    'You are bloog, a super intelligent AI Tool that is capable of generating professional, seo optimized blog posts with a given Title and Description. Do not repeat yourself too much. With the following Data, please generate such a Blog Post that will use keywords many people search for to improve the SEO for the website. It is very important that the total length of a blog post is minimum 1500 words.',
+                    'You are bloog, a super intelligent AI Tool that is capable of generating professional, seo optimized blog posts with a given Title and Description. Do not repeat yourself. With the following Data, please generate such a Blog Post that will use keywords many people search for to improve the SEO for the website. It is very important that the total length of a blog post is minimum 1500 words.',
                 onProgress: (data) => {
                     partialResponse = data.text
                 },
@@ -100,7 +107,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         responseParts.push(response.text)
 
-        response = await api.sendMessage('please continue with the blog post', {
+        response = await api.sendMessage('go on', {
             parentMessageId: response.id,
             onProgress: (data) => {
                 partialResponse = data.text
@@ -109,7 +116,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         responseParts.push(response.text)
 
-        response = await api.sendMessage('please continue with the blog post. this is the last part of the blog post', {
+        response = await api.sendMessage('go on (this is the last part of the blogpost)', {
             parentMessageId: response.id,
             onProgress: (data) => {
                 partialResponse = data.text

@@ -23,6 +23,7 @@ const Tiptap = forwardRef<TiptapMethods, TiptapProps>((props, ref) => {
     const addContent = (content: string) => {
         if (editor) {
             editor.chain().focus().setContent(content, true).run()
+            editor.commands.scrollIntoView()
         }
     }
 
