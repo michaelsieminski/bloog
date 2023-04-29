@@ -1,16 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
 import { useUser } from '@clerk/nextjs'
-import Link from 'next/link'
 import * as Ably from 'ably'
 import Tiptap, { TiptapMethods } from '@/components/Tiptap'
+import Image from 'next/image'
 
 const ArticlesGeneratePage = () => {
     const [title, setTitle] = useState<string>('')
     const [description, setDescription] = useState<string>('')
     const [content, setContent] = useState<string>('')
+    const [image, setImage] = useState<string>('')
+
     const { isLoaded, isSignedIn, user } = useUser()
+
     const contentWrapper = useRef<HTMLDivElement>(null)
     const tiptap = useRef<TiptapMethods>(null)
+    const titleField = useRef<HTMLInputElement>(null)
+    const descriptionField = useRef<HTMLTextAreaElement>(null)
 
     useEffect(() => {
         const realtime = new Ably.Realtime({
@@ -21,13 +26,21 @@ const ArticlesGeneratePage = () => {
             if (isLoaded && isSignedIn) {
                 const channel = realtime.channels.get(user.id)
                 channel.subscribe((message) => {
-                    setContent(message.data)
+                    switch (message.name) {
+                        case 'partialResponse':
+                            setContent(message.data)
 
-                    setTimeout(() => {
-                        if (contentWrapper.current) {
-                            contentWrapper.current.scrollTop = contentWrapper.current.scrollHeight
-                        }
-                    }, 100)
+                            setTimeout(() => {
+                                if (contentWrapper.current) {
+                                    contentWrapper.current.scrollTop = contentWrapper.current.scrollHeight
+                                }
+                            }, 100)
+                            break
+                        case 'image':
+                            console.log(message.data)
+                            setImage(message.data)
+                            break
+                    }
                 })
             }
         })
@@ -56,6 +69,18 @@ const ArticlesGeneratePage = () => {
         }
     }
 
+    const clearPrompts = () => {
+        if (titleField.current) {
+            setTitle('')
+            titleField.current.value = ''
+        }
+
+        if (descriptionField.current) {
+            setDescription('')
+            descriptionField.current.value = ''
+        }
+    }
+
     return (
         <>
             <div className="flex h-[83vh]">
@@ -73,6 +98,7 @@ const ArticlesGeneratePage = () => {
                         </label>
                         <input
                             onChange={(e) => setTitle(e.target.value)}
+                            ref={titleField}
                             id="title"
                             type="text"
                             name="title"
@@ -91,6 +117,7 @@ const ArticlesGeneratePage = () => {
                         <textarea
                             maxLength={1000}
                             onChange={(e) => setDescription(e.target.value)}
+                            ref={descriptionField}
                             id="description"
                             name="description"
                             placeholder="I would like my blog post to compare the current solutions on the market of Blog Post AI Tools. Please make sure to take a neutral perspective and mention bloog as the last option."
@@ -98,8 +125,8 @@ const ArticlesGeneratePage = () => {
                     </div>
 
                     <div className="flex items-center mt-6">
-                        <Link
-                            href="/"
+                        <button
+                            onClick={clearPrompts}
                             className="flex items-center justify-center w-1/2 px-3 py-1 mr-4 text-sm transition-all rounded-md active:scale-95 hover:bg-white opacity-80 hover:opacity-100 shadow-soft">
                             <svg
                                 className="mr-2"
@@ -122,7 +149,7 @@ const ArticlesGeneratePage = () => {
                                     strokeLinejoin="round"></path>
                             </svg>
                             Clear
-                        </Link>
+                        </button>
 
                         <button
                             onClick={createArticle}
@@ -156,6 +183,18 @@ const ArticlesGeneratePage = () => {
                     <div
                         className="h-[98%] overflow-y-scroll"
                         ref={contentWrapper}>
+                        {image ? (
+                            <Image
+                                src={image}
+                                alt="test"
+                                width={500}
+                                height={200}
+                                className="object-cover w-full mb-6 rounded-md h-36"
+                            />
+                        ) : (
+                            ''
+                        )}
+
                         <Tiptap
                             ref={tiptap}
                             content={content}
