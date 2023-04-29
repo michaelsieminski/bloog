@@ -81,6 +81,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </nav>
 
                 <SignedIn>
+                    {}
                     <div className="fixed z-50 w-screen h-screen bg-opacity-60 bg-light backdrop-blur-[3px]">
                         <div className="absolute flex flex-col items-center justify-center p-8 -translate-x-1/2 -translate-y-1/2 bg-white drop-shadow-xl rounded-xl left-1/2 top-1/2 shadow-soft">
                             <div className="pointer-events-none">
