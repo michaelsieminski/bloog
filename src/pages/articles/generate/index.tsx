@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useUser } from '@clerk/nextjs'
 import Link from 'next/link'
 import * as Ably from 'ably'
+import Tiptap, { TiptapMethods } from '@/components/Tiptap'
 
 const ArticlesGeneratePage = () => {
     const [title, setTitle] = useState<string>('')
@@ -9,6 +10,7 @@ const ArticlesGeneratePage = () => {
     const [content, setContent] = useState<string>('')
     const { isLoaded, isSignedIn, user } = useUser()
     const contentWrapper = useRef<HTMLDivElement>(null)
+    const tiptap = useRef<TiptapMethods>(null)
 
     useEffect(() => {
         const realtime = new Ably.Realtime({
@@ -34,6 +36,12 @@ const ArticlesGeneratePage = () => {
             realtime.close()
         }
     }, [isLoaded, isSignedIn, user])
+
+    useEffect(() => {
+        if (tiptap.current) {
+            tiptap.current.addContent(content)
+        }
+    }, [content])
 
     const createArticle = () => {
         if (isLoaded && isSignedIn) {
@@ -103,15 +111,15 @@ const ArticlesGeneratePage = () => {
                                 <path
                                     d="M7 15.25L4.75 13L11.2929 6.45711C11.6834 6.06658 12.3166 6.06658 12.7071 6.45711L15.5429 9.29289C15.9334 9.68342 15.9334 10.3166 15.5429 10.7071L11 15.25H7Z"
                                     stroke="currentColor"
-                                    stroke-width="1.5"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"></path>
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"></path>
                                 <path
                                     d="M12.75 19.25H19.25"
                                     stroke="currentColor"
-                                    stroke-width="1.5"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"></path>
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"></path>
                             </svg>
                             Clear
                         </Link>
@@ -129,15 +137,15 @@ const ArticlesGeneratePage = () => {
                                 <path
                                     d="M15 12.25H18C18.6904 12.25 19.25 11.6904 19.25 11C19.25 10.3097 18.6904 9.75001 18 9.75001H12.25V6.897C12.25 6.02647 11.7582 5.23065 10.9795 4.84133C10.4428 4.57295 9.79526 4.99931 9.77107 5.59894C9.70508 7.23477 9.27444 9.75001 7.25 9.75001L7.25 17.5747C7.25 18.0704 7.61312 18.4913 8.10345 18.5639L12.004 19.1418C13.1035 19.3047 14.1249 18.5399 14.2781 17.439L15 12.25ZM15 12.25H13.75"
                                     stroke="currentColor"
-                                    stroke-width="1.5"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"></path>
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"></path>
                                 <path
                                     d="M4.75 9.75C4.75 9.19772 5.19772 8.75 5.75 8.75H6.25C6.80228 8.75 7.25 9.19772 7.25 9.75V18.25C7.25 18.8023 6.80228 19.25 6.25 19.25H5.75C5.19772 19.25 4.75 18.8023 4.75 18.25V9.75Z"
                                     stroke="currentColor"
-                                    stroke-width="1.5"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"></path>
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"></path>
                             </svg>
                             Start
                         </button>
@@ -145,11 +153,13 @@ const ArticlesGeneratePage = () => {
                 </div>
 
                 <div className="w-full h-full p-6 font-mono text-sm bg-white rounded-md shadow-soft">
-                    <p>Blog post length: {content?.split(' ').length - 1}</p>
                     <div
                         className="h-[98%] overflow-y-scroll"
                         ref={contentWrapper}>
-                        <p>{content ? content : ''}</p>
+                        <Tiptap
+                            ref={tiptap}
+                            content={content}
+                        />
                     </div>
                 </div>
             </div>

@@ -41,8 +41,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const api = new ChatGPTAPI({
             apiKey: process.env.OPENAI_SECRET_KEY || '',
             completionParams: {
-                temperature: 0.7,
-                max_tokens: 1200,
+                temperature: 0.6,
+                max_tokens: 1800,
             },
         })
 
@@ -56,26 +56,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         publishPartialResponse()
 
         let response = await api.sendMessage(
-            "Generate a 1500 words blog post with the following data: Title: '" +
+            "Generate a minimum 1500 words long blog post. Format it properly using HTML Tags and Subtitles when a new logical content section begins. The title should be a h1 tag. Here is the data that should be used for the blog post: Title: '" +
                 title +
                 "'. Description: '" +
                 description +
                 "'.",
             {
                 systemMessage:
-                    'You are bloog, a super intelligent ChatGPT Tool that is capable of generating professional, seo optimized blog posts with a given Title and Description. Do not repeat yourself too much. With the following Data, please generate such a Blog Post that will use keywords many people search for to improve the SEO for the website. It is very important that the total length of a blog post is 1500 words.',
+                    'You are bloog, a super intelligent ChatGPT Tool that is capable of generating professional, seo optimized blog posts with a given Title and Description. Do not repeat yourself too much. With the following Data, please generate such a Blog Post that will use keywords many people search for to improve the SEO for the website. It is very important that the total length of a blog post is minimum 1500 words.',
                 onProgress: (data) => {
                     partialResponse = data.text
+                    console.log(data.text)
                 },
             }
         )
 
         responseParts.push(response.text)
 
-        console.log('Finished first part of blog post (' + response.text.split(' ').length + ' Words)')
+        response = await api.sendMessage('please continue with the blog post', {
+            parentMessageId: response.id,
+            onProgress: (data) => {
+                partialResponse = data.text
+            },
+        })
+
+        responseParts.push(response.text)
 
         response = await api.sendMessage(
-            'please continue with the blog post with another 500 words. Its very important that it continues with 500 words',
+            'please continue with the blog post. this is the last part of the blog post.',
             {
                 parentMessageId: response.id,
                 onProgress: (data) => {
@@ -83,22 +91,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 },
             }
         )
-
-        responseParts.push(response.text)
-
-        console.log('Finished second part of blog post (' + response.text.split(' ').length + ' Words)')
-
-        response = await api.sendMessage(
-            'please continue with the blog post with another 500 words Its very important that it continues with 500 words and this is the ending of the blog post.',
-            {
-                parentMessageId: response.id,
-                onProgress: (data) => {
-                    partialResponse = data.text
-                },
-            }
-        )
-
-        console.log('Finished last part of the blog post (' + response.text.split(' ').length + ' Words)')
 
         running = false
         responseParts = []
