@@ -39,6 +39,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             case 'payment_intent.succeeded':
                 console.log('Payment intent succeeded:', event)
 
+                await prisma.user.update({
+                    where: {
+                        stripeCustomerId: event.data.object.customer,
+                    },
+                    data: {
+                        subscribed: true,
+                    },
+                })
+
                 break
             default:
                 console.warn(`Unhandled event type ${event.type}`)

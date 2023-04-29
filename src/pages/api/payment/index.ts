@@ -36,6 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     quantity: 1,
                 },
             ],
+            customer: user.stripeCustomerId,
             mode: 'subscription',
             success_url: `${process.env.BASE_URL}/?success=true&session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${process.env.BASE_URL}/?canceled=true`,

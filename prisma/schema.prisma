@@ -11,7 +11,7 @@ datasource db {
 model User {
   id                  Int     @id @default(autoincrement())
   userId              String  @unique
-  stripeCustomerId    String?
+  stripeCustomerId    String? @unique
   articlesTotalAmount Int     @default(0)
   subscribed          Boolean @default(false)
 }

@@ -35,19 +35,14 @@ const publishPartialResponse = async () => {
 }
 
 const addArticleAmount = async (userId: string) => {
-    await prisma.user.upsert({
+    await prisma.user.update({
         where: {
             userId: userId,
         },
-        update: {
+        data: {
             articlesTotalAmount: {
                 increment: 1,
             },
-        },
-        create: {
-            userId: userId,
-            articlesTotalAmount: 1,
-            subscribed: false,
         },
     })
 }
