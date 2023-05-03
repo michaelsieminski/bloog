@@ -57,15 +57,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         // Check if user has subscribed
-        const user = await prisma.user.findUnique({
-            where: {
-                userId: userId,
-            },
-        })
+        // const user = await prisma.user.findUnique({
+        //     where: {
+        //         userId: userId,
+        //     },
+        // })
 
-        if (!user || (user && user?.articlesTotalAmount > 10 && !user?.subscribed)) {
-            return false
-        }
+        // if (!user || (user && user?.articlesTotalAmount > 10 && !user?.subscribed)) {
+        //     return false
+        // }
 
         addArticleAmount(userId)
             .then(async () => {

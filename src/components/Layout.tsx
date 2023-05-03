@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react'
+import React, { ReactNode, useContext } from 'react'
 import { SignedIn, SignedOut, UserButton, useUser } from '@clerk/nextjs'
 import { Inter } from 'next/font/google'
 import Logo from '@/components/Logo'
@@ -80,8 +80,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     </SignedOut>
                 </nav>
 
-                <SignedIn>
-                    {}
+                {/* <SignedIn>
                     <div className="fixed z-50 w-screen h-screen bg-opacity-60 bg-light backdrop-blur-[3px]">
                         <div className="absolute flex flex-col items-center justify-center p-8 -translate-x-1/2 -translate-y-1/2 bg-white drop-shadow-xl rounded-xl left-1/2 top-1/2 shadow-soft">
                             <div className="pointer-events-none">
@@ -129,7 +128,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                             </button>
                         </div>
                     </div>
-                </SignedIn>
+                </SignedIn> */}
 
                 <div className="px-12 pt-24 pb-6">{children}</div>
             </main>
